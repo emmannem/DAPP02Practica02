@@ -4,11 +4,13 @@
  */
 package org.uv.DAPP02Practica02;
 
+import java.net.URI;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,32 +43,53 @@ public class ControllerEmpleados {
         } else {
             return null;
         }
-
-//        if (id.hashCode() == 1) {
-//            Empleado emp = new Empleado();
-//            emp.setClave(1L);
-//            emp.setNombre("Gabriel");
-//            emp.setDireccion("Av.1");
-//            emp.setTelefono("123");
-//            return emp;
-//        } else {
-//            return null;
-//        }
     }
 
     @PutMapping("/empleado/{id}")
-    public ResponseEntity<?> put(@PathVariable String id, @RequestBody Object input) {
-        return null;
+    public ResponseEntity<Empleado> put(@PathVariable Long id, @RequestBody Empleado empleado) {
+        Optional<Empleado> employee = repositoryEmpleado.findById(id);
+        if (employee.isPresent()) {
+            try {
+                Empleado empleadoActualizar = employee.get();
+                empleadoActualizar.setNombre(empleado.getNombre());
+                empleadoActualizar.setDireccion(empleado.getDireccion());
+                empleadoActualizar.setTelefono(empleado.getTelefono());
+                repositoryEmpleado.save(empleadoActualizar);
+                //return ResponseEntity.ok().body(empleadoActualizar);
+                return ResponseEntity.ok(empleadoActualizar);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+
     }
 
     @PostMapping("/empleado/")
-    public ResponseEntity<?> post(@RequestBody Object input) {
-        return null;
+    public ResponseEntity<Empleado> post(@RequestBody Empleado empleado) {
+        Empleado savedEmpleado = repositoryEmpleado.save(empleado);
+        try {
+            return ResponseEntity.ok().body(savedEmpleado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @DeleteMapping("/empleado/{id}")
-    public ResponseEntity<?> delete(@PathVariable String id) {
-        return null;
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        Optional<Empleado> empleado = repositoryEmpleado.findById(id);
+        if (empleado.isPresent()) {
+            try {
+                repositoryEmpleado.deleteById(id);
+                return ResponseEntity.noContent().build();
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+
     }
 
 }
